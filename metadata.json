@@ -1,0 +1,8 @@
+{
+  "name": "Remix Remix Remix Remix Bright Future Coaching Academy",
+  "description": "Comprehensive coaching center management platform and portal for Bright Future Coaching Academy in Sadiqabad, Punjab, Pakistan with admissions, courses, student management, fee tracking, and results.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,44 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "safiyamano980@gmail.com" ||
+        request.auth.token.email == "safiaaamir18@gmail.com" ||
+        request.auth.token.email_verified == true
+      );
+    }
+
+    // Public read for gallery, posters, course and teacher photos
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Official Posters upload
+    match /posters/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Student pictures
+    match /students/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    // Admission document uploads (optional student certificates/marksheet)
+    match /admissions/{fileName} {
+      allow write: if request.resource.size < 5 * 1024 * 1024
+        && (request.resource.contentType.matches('image/.*') || request.resource.contentType == 'application/pdf');
+      allow read: if true;
+    }
+  }
+}

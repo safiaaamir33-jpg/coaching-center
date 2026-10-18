@@ -1,0 +1,363 @@
+{
+  "entities": {
+    "AcademySettings": {
+      "title": "AcademySettings",
+      "description": "Public and administrative configuration for Bright Future Coaching Academy",
+      "type": "object",
+      "properties": {
+        "academyName": { "type": "string", "maxLength": 150 },
+        "tagline": { "type": "string", "maxLength": 250 },
+        "address": { "type": "string", "maxLength": 300 },
+        "city": { "type": "string", "maxLength": 100 },
+        "province": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "alternatePhone": { "type": "string", "maxLength": 50 },
+        "whatsappNumber": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 120 },
+        "admissionOpen": { "type": "boolean" },
+        "admissionBannerTitle": { "type": "string", "maxLength": 200 },
+        "admissionBannerText": { "type": "string", "maxLength": 500 },
+        "marqueeAnnouncement": { "type": "string", "maxLength": 400 },
+        "aboutText": { "type": "string", "maxLength": 2000 },
+        "missionText": { "type": "string", "maxLength": 2000 },
+        "visionText": { "type": "string", "maxLength": 2000 },
+        "facilities": { "type": "array" },
+        "primaryColor": { "type": "string", "maxLength": 30 },
+        "accentColor": { "type": "string", "maxLength": 30 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["academyName", "address", "phone", "email"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized administrator records",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 120 },
+        "name": { "type": "string", "maxLength": 100 },
+        "role": { "type": "string", "enum": ["superadmin", "admin"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["email", "role"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Tuition and coaching course offerings",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 150 },
+        "classGrade": { "type": "string", "maxLength": 50 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "schedule": { "type": "string", "maxLength": 150 },
+        "duration": { "type": "string", "maxLength": 100 },
+        "feeMonthly": { "type": "number" },
+        "feeAdmission": { "type": "number" },
+        "teacherName": { "type": "string", "maxLength": 100 },
+        "seatsAvailable": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "classGrade", "feeMonthly", "isPublished"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Enrolled student record in the academy",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "maxLength": 50 },
+        "fullName": { "type": "string", "maxLength": 120 },
+        "fatherName": { "type": "string", "maxLength": 120 },
+        "dob": { "type": "string", "maxLength": 30 },
+        "gender": { "type": "string", "enum": ["male", "female", "other"] },
+        "phone": { "type": "string", "maxLength": 50 },
+        "guardianPhone": { "type": "string", "maxLength": 50 },
+        "address": { "type": "string", "maxLength": 300 },
+        "currentClass": { "type": "string", "maxLength": 50 },
+        "enrolledCourses": { "type": "array" },
+        "status": { "type": "string", "enum": ["active", "graduated", "suspended", "left"] },
+        "monthlyFee": { "type": "number" },
+        "discount": { "type": "number" },
+        "totalPaid": { "type": "number" },
+        "balance": { "type": "number" },
+        "enrollmentDate": { "type": "string", "maxLength": 50 },
+        "photoUrl": { "type": "string" },
+        "notes": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["studentId", "fullName", "fatherName", "currentClass", "status"]
+    },
+    "Admission": {
+      "title": "Admission",
+      "description": "Student online admission application",
+      "type": "object",
+      "properties": {
+        "applicationRef": { "type": "string", "maxLength": 50 },
+        "fullName": { "type": "string", "maxLength": 120 },
+        "fatherName": { "type": "string", "maxLength": 120 },
+        "dob": { "type": "string", "maxLength": 30 },
+        "gender": { "type": "string", "enum": ["male", "female", "other"] },
+        "phone": { "type": "string", "maxLength": 50 },
+        "guardianPhone": { "type": "string", "maxLength": 50 },
+        "address": { "type": "string", "maxLength": 300 },
+        "previousEducation": { "type": "string", "maxLength": 150 },
+        "requestedClass": { "type": "string", "maxLength": 80 },
+        "previousSchool": { "type": "string", "maxLength": 200 },
+        "message": { "type": "string", "maxLength": 1000 },
+        "photoUrl": { "type": "string" },
+        "documentUrl": { "type": "string" },
+        "consent": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["pending", "under_review", "approved", "rejected"] },
+        "studentId": { "type": "string", "maxLength": 50 },
+        "reviewerNotes": { "type": "string", "maxLength": 1000 },
+        "submittedAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["applicationRef", "fullName", "fatherName", "phone", "requestedClass", "status"]
+    },
+    "Teacher": {
+      "title": "Teacher",
+      "description": "Faculty member and instructor record",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 120 },
+        "qualification": { "type": "string", "maxLength": 150 },
+        "experience": { "type": "string", "maxLength": 80 },
+        "subjects": { "type": "array" },
+        "classes": { "type": "array" },
+        "phone": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 120 },
+        "salaryMonthly": { "type": "number" },
+        "bio": { "type": "string", "maxLength": 1500 },
+        "photoUrl": { "type": "string", "maxLength": 600 },
+        "isPublished": { "type": "boolean" },
+        "status": { "type": "string", "enum": ["active", "on_leave", "resigned"] },
+        "joiningDate": { "type": "string", "maxLength": 50 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "qualification", "isPublished", "status"]
+    },
+    "FeePayment": {
+      "title": "FeePayment",
+      "description": "Student fee collection and receipt records",
+      "type": "object",
+      "properties": {
+        "paymentId": { "type": "string", "maxLength": 50 },
+        "receiptNumber": { "type": "string", "maxLength": 50 },
+        "studentId": { "type": "string", "maxLength": 50 },
+        "studentName": { "type": "string", "maxLength": 120 },
+        "classGrade": { "type": "string", "maxLength": 50 },
+        "amount": { "type": "number" },
+        "feeMonth": { "type": "string", "maxLength": 30 },
+        "paymentType": { "type": "string", "enum": ["monthly", "admission", "exam", "annual", "other"] },
+        "paymentMethod": { "type": "string", "enum": ["cash", "bank_transfer", "easypaisa", "jazzcash", "cheque"] },
+        "referenceNumber": { "type": "string", "maxLength": 100 },
+        "discountApplied": { "type": "number" },
+        "receivedBy": { "type": "string", "maxLength": 100 },
+        "notes": { "type": "string", "maxLength": 500 },
+        "paidAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["paymentId", "receiptNumber", "studentId", "amount", "feeMonth", "paymentType", "paymentMethod"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Daily student attendance session record",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "maxLength": 30 },
+        "classGrade": { "type": "string", "maxLength": 50 },
+        "records": { "type": "object" },
+        "totalStudents": { "type": "number" },
+        "presentCount": { "type": "number" },
+        "absentCount": { "type": "number" },
+        "lateCount": { "type": "number" },
+        "leaveCount": { "type": "number" },
+        "recordedBy": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["date", "classGrade", "records"]
+    },
+    "Exam": {
+      "title": "Exam",
+      "description": "Academic assessment or test specification",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 150 },
+        "examType": { "type": "string", "enum": ["monthly_test", "midterm", "final", "mock_exam", "weekly_quiz"] },
+        "classGrade": { "type": "string", "maxLength": 50 },
+        "subject": { "type": "string", "maxLength": 100 },
+        "date": { "type": "string", "maxLength": 30 },
+        "totalMarks": { "type": "number" },
+        "passingMarks": { "type": "number" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "examType", "classGrade", "totalMarks"]
+    },
+    "Result": {
+      "title": "Result",
+      "description": "Exam result for an individual student",
+      "type": "object",
+      "properties": {
+        "examId": { "type": "string", "maxLength": 60 },
+        "examTitle": { "type": "string", "maxLength": 150 },
+        "studentId": { "type": "string", "maxLength": 50 },
+        "studentName": { "type": "string", "maxLength": 120 },
+        "fatherName": { "type": "string", "maxLength": 120 },
+        "classGrade": { "type": "string", "maxLength": 50 },
+        "marksObtained": { "type": "number" },
+        "totalMarks": { "type": "number" },
+        "percentage": { "type": "number" },
+        "grade": { "type": "string", "maxLength": 10 },
+        "remarks": { "type": "string", "maxLength": 300 },
+        "announcedAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["examId", "studentId", "studentName", "marksObtained", "totalMarks", "grade"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Public notice, event, or admission banner update",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 200 },
+        "category": { "type": "string", "enum": ["admission", "exam", "event", "holiday", "general"] },
+        "content": { "type": "string", "maxLength": 3000 },
+        "posterUrl": { "type": "string", "maxLength": 600 },
+        "date": { "type": "string", "maxLength": 30 },
+        "isImportant": { "type": "boolean" },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "category", "content", "isPublished"]
+    },
+    "Gallery": {
+      "title": "Gallery",
+      "description": "Photographs and media highlights of academy events",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 150 },
+        "category": { "type": "string", "enum": ["campus", "classes", "events", "achievements"] },
+        "imageUrl": { "type": "string", "maxLength": 600 },
+        "description": { "type": "string", "maxLength": 500 },
+        "isPublished": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["title", "imageUrl", "isPublished"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Parent or student feedback and rating",
+      "type": "object",
+      "properties": {
+        "authorName": { "type": "string", "maxLength": 100 },
+        "roleOrClass": { "type": "string", "maxLength": 100 },
+        "rating": { "type": "number" },
+        "comment": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "submittedAt": { "type": "string" }
+      },
+      "required": ["authorName", "rating", "comment", "status"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "Inquiry submitted through public contact form",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 100 },
+        "email": { "type": "string", "maxLength": 120 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "subject": { "type": "string", "maxLength": 150 },
+        "message": { "type": "string", "maxLength": 2000 },
+        "status": { "type": "string", "enum": ["new", "read", "resolved"] },
+        "submittedAt": { "type": "string" }
+      },
+      "required": ["name", "phone", "message", "status"]
+    },
+    "TeacherSalary": {
+      "title": "TeacherSalary",
+      "description": "Faculty monthly salary payout record",
+      "type": "object",
+      "properties": {
+        "teacherId": { "type": "string", "maxLength": 50 },
+        "teacherName": { "type": "string", "maxLength": 120 },
+        "month": { "type": "string", "maxLength": 30 },
+        "amount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["cash", "bank_transfer", "easypaisa", "jazzcash", "cheque"] },
+        "reference": { "type": "string", "maxLength": 100 },
+        "remarks": { "type": "string", "maxLength": 500 },
+        "paidBy": { "type": "string", "maxLength": 100 },
+        "paidAt": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["teacherId", "teacherName", "month", "amount", "paymentMethod"]
+    }
+  },
+  "firestore": {
+    "/academySettings/{docId}": {
+      "schema": "AcademySettings",
+      "description": "General settings, contact information, and academy branding"
+    },
+    "/admins/{adminUid}": {
+      "schema": "Admin",
+      "description": "Authorized administrators with privilege checks"
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Offered coaching and tuition courses"
+    },
+    "/students/{studentId}": {
+      "schema": "Student",
+      "description": "Enrolled student records"
+    },
+    "/admissions/{admissionId}": {
+      "schema": "Admission",
+      "description": "Online admission applications from students and parents"
+    },
+    "/teachers/{teacherId}": {
+      "schema": "Teacher",
+      "description": "Teacher profiles and faculty details"
+    },
+    "/feePayments/{paymentId}": {
+      "schema": "FeePayment",
+      "description": "Student fee collection entries and receipts"
+    },
+    "/attendance/{attendanceId}": {
+      "schema": "Attendance",
+      "description": "Daily class attendance records"
+    },
+    "/exams/{examId}": {
+      "schema": "Exam",
+      "description": "Assessment and exam definitions"
+    },
+    "/results/{resultId}": {
+      "schema": "Result",
+      "description": "Student exam performance and marks"
+    },
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Public notices, news, and banners"
+    },
+    "/gallery/{galleryId}": {
+      "schema": "Gallery",
+      "description": "Visual highlights and photos from academy activities"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Feedback and testimonials from parents and students"
+    },
+    "/contactMessages/{messageId}": {
+      "schema": "ContactMessage",
+      "description": "General visitor inquiries sent through the contact form"
+    },
+    "/teacherSalaries/{salaryId}": {
+      "schema": "TeacherSalary",
+      "description": "Teacher salary payout history"
+    }
+  }
+}

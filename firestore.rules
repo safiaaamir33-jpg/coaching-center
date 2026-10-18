@@ -1,0 +1,151 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isBootstrappedAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "safiaaamir33@gmail.com" ||
+        request.auth.token.email == "safiyamano980@gmail.com" ||
+        request.auth.token.email == "safiaaamir18@gmail.com" ||
+        (request.auth.token.email_verified == true && (
+          request.auth.token.email == "safiaaamir33@gmail.com" ||
+          request.auth.token.email == "safiyamano980@gmail.com" ||
+          request.auth.token.email == "safiaaamir18@gmail.com"
+        ))
+      );
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        isBootstrappedAdmin() ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Admins Collection
+    match /admins/{adminUid} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == adminUid);
+      allow write: if isAdmin();
+    }
+
+    // Academy Settings
+    match /academySettings/{docId} {
+      allow get: if true;
+      allow list: if true;
+      allow write: if isAdmin();
+    }
+
+    // Courses
+    match /courses/{courseId} {
+      allow get: if resource.data.isPublished == true || isAdmin();
+      allow list: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Announcements
+    match /announcements/{announcementId} {
+      allow get: if resource.data.isPublished == true || isAdmin();
+      allow list: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Gallery
+    match /gallery/{galleryId} {
+      allow get: if resource.data.isPublished == true || isAdmin();
+      allow list: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Teachers
+    match /teachers/{teacherId} {
+      allow get: if resource.data.isPublished == true || isAdmin();
+      allow list: if resource.data.isPublished == true || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Reviews - Public can create pending reviews, only approved are publicly visible
+    match /reviews/{reviewId} {
+      allow get: if resource.data.status == "approved" || isAdmin();
+      allow list: if resource.data.status == "approved" || isAdmin();
+      allow create: if request.resource.data.status == "pending"
+        && request.resource.data.authorName is string
+        && request.resource.data.authorName.size() > 0 && request.resource.data.authorName.size() <= 100
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1 && request.resource.data.rating <= 5
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() > 0 && request.resource.data.comment.size() <= 1000;
+      allow update, delete: if isAdmin();
+    }
+
+    // Contact Messages - Public can submit inquiries with status "new", only admins read/update
+    match /contactMessages/{messageId} {
+      allow create: if request.resource.data.status == "new"
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+        && request.resource.data.phone is string && request.resource.data.phone.size() > 0 && request.resource.data.phone.size() <= 50
+        && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() <= 2000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Admissions - Public can submit pending applications with unique reference
+    // Public cannot list all admissions. Status check allowed by docId or by admin
+    match /admissions/{admissionId} {
+      allow create: if isAdmin() || (
+        request.resource.data.status == "pending"
+        && request.resource.data.fullName is string && request.resource.data.fullName.size() > 0 && request.resource.data.fullName.size() <= 120
+        && request.resource.data.fatherName is string && request.resource.data.fatherName.size() > 0 && request.resource.data.fatherName.size() <= 120
+        && request.resource.data.phone is string && request.resource.data.phone.size() > 0 && request.resource.data.phone.size() <= 50
+        && request.resource.data.requestedClass is string && request.resource.data.requestedClass.size() > 0 && request.resource.data.requestedClass.size() <= 80
+      );
+      allow get: if isAdmin() || (resource.data.applicationRef == admissionId);
+      allow list: if isAdmin();
+      allow update, delete: if isAdmin();
+    }
+
+    // Students - Private administrative records
+    match /students/{studentId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Fee Payments & Receipts - Strictly administrative
+    match /feePayments/{paymentId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Attendance - Strictly administrative
+    match /attendance/{attendanceId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Exams - Public can view test schedules, admin can write
+    match /exams/{examId} {
+      allow get, list: if true;
+      allow write: if isAdmin();
+    }
+
+    // Results - Public can only lookup their own single result by exact studentId + examId doc ID if published, or admin
+    match /results/{resultId} {
+      allow get: if isAdmin() || (resource.data.isPublished == true);
+      allow list: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Teacher Salaries - Strictly administrative
+    match /teacherSalaries/{salaryId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}
