@@ -3,6 +3,7 @@ import {
   doc,
   getDocs,
   getDoc,
+  setDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -255,10 +256,14 @@ export async function getAllCourses(): Promise<Course[]> {
     }
   });
 
+  // 3. Local custom courses override or add, and sync up to Firestore
   localList.forEach((c) => {
     const norm = c.name?.trim().toLowerCase() || c.id || '';
     if (!deletedIds.includes(c.id || '') && !deletedIds.includes(norm)) {
       map.set(norm, c);
+      if (c.id && !dbList.some((d) => d.id === c.id || d.name.trim().toLowerCase() === c.name.trim().toLowerCase())) {
+        setDoc(doc(db, COLLECTION_NAME, c.id), c).catch(() => {});
+      }
     }
   });
 
@@ -278,16 +283,8 @@ export async function addCourse(course: Omit<Course, 'id'>): Promise<string> {
   saveLocalCustomCourses([fullCourse, ...current]);
 
   try {
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...course,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
-    if (docRef.id) {
-      const updated = getLocalCustomCourses().map((c) => (c.id === localId ? { ...c, id: docRef.id } : c));
-      saveLocalCustomCourses(updated);
-      return docRef.id;
-    }
+    const docRef = doc(db, COLLECTION_NAME, localId);
+    await setDoc(docRef, fullCourse);
     return localId;
   } catch (error) {
     console.warn('Firestore addCourse fallback:', error);
@@ -302,10 +299,7 @@ export async function updateCourse(id: string, course: Partial<Course>): Promise
 
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, {
-      ...course,
-      updatedAt: new Date().toISOString(),
-    });
+    await setDoc(docRef, { ...course, updatedAt: new Date().toISOString() }, { merge: true });
   } catch (error) {
     console.warn('Firestore updateCourse fallback:', error);
   }

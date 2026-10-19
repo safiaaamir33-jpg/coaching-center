@@ -3,6 +3,7 @@ import {
   doc,
   getDocs,
   getDoc,
+  setDoc,
   addDoc,
   updateDoc,
   deleteDoc,
@@ -218,6 +219,9 @@ export async function getAllTeachersAdmin(): Promise<Teacher[]> {
     const norm = t.name?.trim().toLowerCase() || t.id || '';
     if (!deletedIds.includes(t.id || '') && !deletedIds.includes(norm)) {
       map.set(norm, t);
+      if (t.id && !dbList.some((d) => d.id === t.id || d.name.trim().toLowerCase() === t.name.trim().toLowerCase())) {
+        setDoc(doc(db, COLLECTION_NAME, t.id), t).catch(() => {});
+      }
     }
   });
 
@@ -236,15 +240,8 @@ export async function addTeacher(teacher: Omit<Teacher, 'id'>): Promise<string> 
   saveLocalCustomTeachers([fullItem, ...current]);
 
   try {
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
-      ...teacher,
-      createdAt: new Date().toISOString(),
-    });
-    if (docRef.id) {
-      const updated = getLocalCustomTeachers().map((t) => (t.id === localId ? { ...t, id: docRef.id } : t));
-      saveLocalCustomTeachers(updated);
-      return docRef.id;
-    }
+    const docRef = doc(db, COLLECTION_NAME, localId);
+    await setDoc(docRef, fullItem);
     return localId;
   } catch (error) {
     console.warn('Firestore addTeacher fallback:', error);

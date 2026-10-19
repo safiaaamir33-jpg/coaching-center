@@ -350,11 +350,14 @@ export async function getPublishedAnnouncements(): Promise<Announcement[]> {
     }
   }
 
-  // Custom items
+  // Custom items & Auto-sync to Firestore so clients always see what admin shared
   for (const item of customItems) {
     const norm = item.title?.trim().toLowerCase() || item.id || '';
     if (!deletedIds.includes(item.id || '') && !deletedIds.includes(norm)) {
       map.set(norm, item);
+      if (item.id && !dbList.some((d) => d.id === item.id)) {
+        setDoc(doc(db, ANNOUNCEMENTS_COLLECTION, item.id), item).catch(() => {});
+      }
     }
   }
 
@@ -406,11 +409,14 @@ export async function getAllAnnouncements(): Promise<Announcement[]> {
     }
   }
 
-  // 3. Local custom items override or add
+  // 3. Local custom items override or add, and sync up to Firestore
   for (const item of customItems) {
     const norm = item.title?.trim().toLowerCase() || item.id || '';
     if (!deletedIds.includes(item.id || '') && !deletedIds.includes(norm)) {
       map.set(norm, item);
+      if (item.id && !dbList.some((d) => d.id === item.id)) {
+        setDoc(doc(db, ANNOUNCEMENTS_COLLECTION, item.id), item).catch(() => {});
+      }
     }
   }
 
@@ -430,23 +436,14 @@ export async function createAnnouncement(announcement: Omit<Announcement, 'id' |
     createdAt: new Date().toISOString(),
   };
 
-  // Always save to custom storage to prevent poster loss
+  // 1. Save to custom local storage
   const current = getCustomAnnouncementsFromStorage();
   saveCustomAnnouncementsToStorage([fullItem, ...current]);
 
+  // 2. Persist directly to Firestore so all clients/visitors immediately see it
   try {
-    const docRef = await addDoc(collection(db, ANNOUNCEMENTS_COLLECTION), {
-      ...announcement,
-      createdAt: new Date().toISOString(),
-    });
-    // Update local item with Firestore ID if generated
-    if (docRef.id) {
-      const updated = getCustomAnnouncementsFromStorage().map((a) =>
-        a.id === localId ? { ...a, id: docRef.id } : a
-      );
-      saveCustomAnnouncementsToStorage(updated);
-      return docRef.id;
-    }
+    const docRef = doc(db, ANNOUNCEMENTS_COLLECTION, localId);
+    await setDoc(docRef, fullItem);
     return localId;
   } catch (error) {
     console.warn('Firestore announcement write skipped or offline, saved to local cache safely:', error);
@@ -557,6 +554,9 @@ export async function getAllGallery(): Promise<GalleryItem[]> {
   for (const item of customItems) {
     if (item.id && !deletedIds.includes(item.id)) {
       map.set(item.id, item);
+      if (!dbList.some((d) => d.id === item.id)) {
+        setDoc(doc(db, GALLERY_COLLECTION, item.id), item).catch(() => {});
+      }
     }
   }
 
@@ -575,17 +575,8 @@ export async function createGalleryItem(item: Omit<GalleryItem, 'id' | 'createdA
   saveCustomGalleryToStorage([fullItem, ...current]);
 
   try {
-    const docRef = await addDoc(collection(db, GALLERY_COLLECTION), {
-      ...item,
-      createdAt: new Date().toISOString(),
-    });
-    if (docRef.id) {
-      const updated = getCustomGalleryFromStorage().map((g) =>
-        g.id === localId ? { ...g, id: docRef.id } : g
-      );
-      saveCustomGalleryToStorage(updated);
-      return docRef.id;
-    }
+    const docRef = doc(db, GALLERY_COLLECTION, localId);
+    await setDoc(docRef, fullItem);
     return localId;
   } catch (error) {
     console.warn('Firestore gallery write skipped or offline, saved to local cache safely:', error);

@@ -103,6 +103,9 @@ export async function getAllContactMessages(): Promise<ContactMessage[]> {
   for (const item of localList) {
     if (item.id && !deletedIds.includes(item.id)) {
       map.set(item.id, item);
+      if (!dbList.some((d) => d.id === item.id)) {
+        setDoc(doc(db, COLLECTION_NAME, item.id), item).catch(() => {});
+      }
     }
   }
 
