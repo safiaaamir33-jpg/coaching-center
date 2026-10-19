@@ -12,7 +12,9 @@ const __dirname = path.dirname(__filename);
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
-  const isProd = process.env.NODE_ENV === 'production';
+  const distPath = path.resolve(__dirname, 'dist');
+  const distIndexPath = path.resolve(distPath, 'index.html');
+  const isProd = process.env.NODE_ENV === 'production' && fs.existsSync(distIndexPath);
 
   app.use(express.json());
 
@@ -134,7 +136,7 @@ CRITICAL RULES:
   if (!isProd) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: 'spa',
+      appType: 'custom',
     });
     app.use(vite.middlewares);
 
@@ -155,17 +157,12 @@ CRITICAL RULES:
       }
     });
   } else {
-    const distPath = path.resolve(__dirname, 'dist');
-    const distIndexPath = path.resolve(distPath, 'index.html');
-    if (fs.existsSync(distPath)) {
-      app.use(express.static(distPath));
-    }
-    app.get('*', (_req, res) => {
-      if (fs.existsSync(distIndexPath)) {
-        res.sendFile(distIndexPath);
-      } else {
-        res.sendFile(path.resolve(__dirname, 'index.html'));
+    app.use(express.static(distPath));
+    app.use('*', (req, res, next) => {
+      if (req.originalUrl.startsWith('/api')) {
+        return next();
       }
+      res.sendFile(distIndexPath);
     });
   }
 

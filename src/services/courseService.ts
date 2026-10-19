@@ -169,27 +169,53 @@ function saveLocalCustomCourses(courses: Course[]) {
   }
 }
 
+function cleanFirestoreCourse(course: Record<string, any>): Record<string, any> {
+  const cleaned: Record<string, any> = {};
+  for (const [k, v] of Object.entries(course)) {
+    if (v !== undefined) {
+      cleaned[k] = v;
+    }
+  }
+  return cleaned;
+}
+
 export async function getPublishedCourses(): Promise<Course[]> {
   const deletedIds = getDeletedCourseIds();
   const localList = getLocalCustomCourses().filter((c) => {
-    if (!c.id || !c.isPublished) return false;
+    if (!c.id || c.isPublished === false) return false;
     const norm = c.name?.trim().toLowerCase();
     return !deletedIds.includes(c.id) && !deletedIds.includes(norm);
   });
 
   let dbList: Course[] = [];
   try {
-    const q = query(collection(db, COLLECTION_NAME), where('isPublished', '==', true));
-    const snapshot = await getDocs(q);
+    const snapshot = await getDocs(collection(db, COLLECTION_NAME));
     snapshot.forEach((doc) => {
       const data = { id: doc.id, ...doc.data() } as Course;
       const norm = data.name?.trim().toLowerCase();
-      if (!deletedIds.includes(doc.id) && !deletedIds.includes(norm)) {
+      if (data.isPublished !== false && !deletedIds.includes(doc.id) && !deletedIds.includes(norm)) {
         dbList.push(data);
       }
     });
   } catch (error) {
     console.warn('Error fetching published courses from DB:', error);
+  }
+
+  // Seed default courses to Firestore if DB has no courses yet
+  if (dbList.length === 0 && INITIAL_COURSES.length > 0) {
+    INITIAL_COURSES.forEach((initC, i) => {
+      const initId = `init-${i}`;
+      const norm = initC.name.trim().toLowerCase();
+      if (!deletedIds.includes(initId) && !deletedIds.includes(norm)) {
+        const payload = cleanFirestoreCourse({
+          id: initId,
+          ...initC,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+        setDoc(doc(db, COLLECTION_NAME, initId), payload).catch(() => {});
+      }
+    });
   }
 
   const map = new Map<string, Course>();
@@ -208,10 +234,15 @@ export async function getPublishedCourses(): Promise<Course[]> {
     }
   });
 
+  // Local custom courses override or add, and sync up to Firestore
   localList.forEach((c) => {
     const norm = c.name?.trim().toLowerCase() || c.id || '';
     if (!deletedIds.includes(c.id || '') && !deletedIds.includes(norm)) {
       map.set(norm, c);
+      if (c.id && !dbList.some((d) => d.id === c.id || d.name?.trim().toLowerCase() === c.name?.trim().toLowerCase())) {
+        const cleaned = cleanFirestoreCourse(c);
+        setDoc(doc(db, COLLECTION_NAME, c.id), cleaned).catch(() => {});
+      }
     }
   });
 
@@ -256,13 +287,14 @@ export async function getAllCourses(): Promise<Course[]> {
     }
   });
 
-  // 3. Local custom courses override or add, and sync up to Firestore
+  // Sync any local courses up to Firestore
   localList.forEach((c) => {
     const norm = c.name?.trim().toLowerCase() || c.id || '';
     if (!deletedIds.includes(c.id || '') && !deletedIds.includes(norm)) {
       map.set(norm, c);
-      if (c.id && !dbList.some((d) => d.id === c.id || d.name.trim().toLowerCase() === c.name.trim().toLowerCase())) {
-        setDoc(doc(db, COLLECTION_NAME, c.id), c).catch(() => {});
+      if (c.id && !dbList.some((d) => d.id === c.id || d.name?.trim().toLowerCase() === c.name?.trim().toLowerCase())) {
+        const cleaned = cleanFirestoreCourse(c);
+        setDoc(doc(db, COLLECTION_NAME, c.id), cleaned).catch(() => {});
       }
     }
   });
@@ -275,6 +307,19 @@ export async function addCourse(course: Omit<Course, 'id'>): Promise<string> {
   const fullCourse: Course = {
     ...course,
     id: localId,
+    name: course.name?.trim() || '',
+    classGrade: course.classGrade?.trim() || 'Class 9',
+    subject: course.subject?.trim() || '',
+    description: course.description?.trim() || '',
+    schedule: course.schedule?.trim() || '',
+    duration: course.duration?.trim() || '',
+    feeMonthly: Number(course.feeMonthly) || 0,
+    feeAdmission: Number(course.feeAdmission) || 0,
+    teacherName: course.teacherName?.trim() || '',
+    seatsAvailable: Number(course.seatsAvailable) || 30,
+    isPublished: course.isPublished ?? true,
+    featured: Boolean(course.featured),
+    posterUrl: course.posterUrl || '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -284,10 +329,12 @@ export async function addCourse(course: Omit<Course, 'id'>): Promise<string> {
 
   try {
     const docRef = doc(db, COLLECTION_NAME, localId);
-    await setDoc(docRef, fullCourse);
+    const cleaned = cleanFirestoreCourse(fullCourse);
+    await setDoc(docRef, cleaned);
+    console.log('Successfully saved course to Firestore:', localId);
     return localId;
   } catch (error) {
-    console.warn('Firestore addCourse fallback:', error);
+    console.warn('Firestore addCourse fallback, saved locally:', error);
     return localId;
   }
 }
@@ -299,7 +346,8 @@ export async function updateCourse(id: string, course: Partial<Course>): Promise
 
   try {
     const docRef = doc(db, COLLECTION_NAME, id);
-    await setDoc(docRef, { ...course, updatedAt: new Date().toISOString() }, { merge: true });
+    const cleaned = cleanFirestoreCourse({ ...course, updatedAt: new Date().toISOString() });
+    await setDoc(docRef, cleaned, { merge: true });
   } catch (error) {
     console.warn('Firestore updateCourse fallback:', error);
   }

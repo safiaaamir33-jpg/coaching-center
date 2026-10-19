@@ -278,7 +278,7 @@ export const HomePage: React.FC = () => {
                     </div>
                   </div>
                   <Link
-                    to={`/admissions?class=${encodeURIComponent(c.classGrade)}`}
+                    to={`/admissions?course=${encodeURIComponent(c.name)}`}
                     className="px-3 py-1.5 rounded-lg bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold shadow-xs transition"
                   >
                     Apply Now

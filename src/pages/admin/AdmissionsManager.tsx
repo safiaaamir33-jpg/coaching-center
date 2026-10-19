@@ -19,7 +19,7 @@ import {
   User,
   Trash2
 } from 'lucide-react';
-import { AdmissionApplication } from '../../types';
+import { AdmissionApplication, Course } from '../../types';
 import {
   getAllAdmissions,
   updateAdmissionStatus,
@@ -27,6 +27,7 @@ import {
   submitAdmissionApplication,
   deleteAdmission
 } from '../../services/admissionService';
+import { getAllCourses } from '../../services/courseService';
 import { uploadImageOrFile } from '../../services/storageService';
 
 export const AdmissionsManager: React.FC = () => {
@@ -57,6 +58,7 @@ export const AdmissionsManager: React.FC = () => {
   const [addNotes, setAddNotes] = useState('');
   const [addSaving, setAddSaving] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+  const [availableCourses, setAvailableCourses] = useState<Course[]>([]);
 
   // Detail Modal
   const [selectedApp, setSelectedApp] = useState<AdmissionApplication | null>(null);
@@ -70,8 +72,16 @@ export const AdmissionsManager: React.FC = () => {
 
   const loadAdmissions = async () => {
     try {
-      const data = await getAllAdmissions();
+      const [data, courseList] = await Promise.all([
+        getAllAdmissions(),
+        getAllCourses()
+      ]);
       setAdmissions(data);
+      setAvailableCourses(courseList);
+      if (courseList.length > 0 && !addClass) {
+        setAddClass(courseList[0].name);
+        setAddMonthlyFee(courseList[0].feeMonthly);
+      }
       if (highlightRef) {
         const found = data.find((a) => a.applicationRef === highlightRef);
         if (found) {
@@ -741,26 +751,44 @@ export const AdmissionsManager: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-slate-700 mb-1">Class / Batch *</label>
+                  <label className="block font-semibold text-slate-700 mb-1">Class / Course *</label>
                   <select
                     value={addClass}
-                    onChange={(e) => setAddClass(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-blue-900"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAddClass(val);
+                      const found = availableCourses.find((c) => c.name === val || c.classGrade === val);
+                      if (found) {
+                        setAddMonthlyFee(found.feeMonthly);
+                      }
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-blue-900 bg-white"
                   >
-                    {[
-                      'Class 9',
-                      'Class 10',
-                      'Class 11 (F.Sc Pre-Medical)',
-                      'Class 11 (F.Sc Pre-Engineering)',
-                      'Class 11 (ICS)',
-                      'Class 12 (F.Sc Pre-Medical)',
-                      'Class 12 (F.Sc Pre-Engineering)',
-                      'Spoken English'
-                    ].map((cls) => (
-                      <option key={cls} value={cls}>
-                        {cls}
-                      </option>
-                    ))}
+                    {availableCourses.length > 0 && (
+                      <optgroup label="Active Courses">
+                        {availableCourses.map((c) => (
+                          <option key={c.id || c.name} value={c.name}>
+                            {c.name} ({c.classGrade}) - PKR {c.feeMonthly}/mo
+                          </option>
+                        ))}
+                      </optgroup>
+                    )}
+                    <optgroup label="General Grades">
+                      {[
+                        'Class 9',
+                        'Class 10',
+                        'Class 11 (F.Sc Pre-Medical)',
+                        'Class 11 (F.Sc Pre-Engineering)',
+                        'Class 11 (ICS)',
+                        'Class 12 (F.Sc Pre-Medical)',
+                        'Class 12 (F.Sc Pre-Engineering)',
+                        'Spoken English'
+                      ].map((cls) => (
+                        <option key={cls} value={cls}>
+                          {cls}
+                        </option>
+                      ))}
+                    </optgroup>
                   </select>
                 </div>
               </div>

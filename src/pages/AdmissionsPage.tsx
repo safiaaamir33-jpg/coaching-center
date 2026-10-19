@@ -17,11 +17,13 @@ import {
 import { useAcademy } from '../context/AcademyContext';
 import { submitAdmissionApplication } from '../services/admissionService';
 import { uploadImageOrFile } from '../services/storageService';
+import { getPublishedCourses } from '../services/courseService';
+import { Course } from '../types';
 
 export const AdmissionsPage: React.FC = () => {
   const { settings } = useAcademy();
   const [searchParams] = useSearchParams();
-  const initialClass = searchParams.get('class') || '';
+  const initialClass = searchParams.get('class') || searchParams.get('course') || '';
 
   const [fullName, setFullName] = useState('');
   const [fatherName, setFatherName] = useState('');
@@ -31,7 +33,7 @@ export const AdmissionsPage: React.FC = () => {
   const [guardianPhone, setGuardianPhone] = useState('');
   const [address, setAddress] = useState('');
   const [previousEducation, setPreviousEducation] = useState('');
-  const [requestedClass, setRequestedClass] = useState(initialClass || 'Class 9');
+  const [requestedClass, setRequestedClass] = useState(initialClass || '');
   const [previousSchool, setPreviousSchool] = useState('');
   const [message, setMessage] = useState('');
   const [consent, setConsent] = useState(false);
@@ -39,18 +41,54 @@ export const AdmissionsPage: React.FC = () => {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Fetch dynamic courses created by admin and published
   useEffect(() => {
-    if (initialClass) {
-      setRequestedClass(initialClass);
-    }
+    let isMounted = true;
+    getPublishedCourses()
+      .then((list) => {
+        if (!isMounted) return;
+        setCourses(list);
+        if (list.length > 0) {
+          if (initialClass) {
+            const norm = decodeURIComponent(initialClass).trim().toLowerCase();
+            const matched = list.find(
+              (c) =>
+                c.id?.toLowerCase() === norm ||
+                c.name.trim().toLowerCase() === norm ||
+                c.classGrade.trim().toLowerCase() === norm ||
+                c.name.toLowerCase().includes(norm) ||
+                c.classGrade.toLowerCase().includes(norm)
+            );
+            if (matched) {
+              setRequestedClass(matched.name);
+              return;
+            }
+          }
+          // Default to initialClass if set, or first course in list
+          if (!requestedClass) {
+            setRequestedClass(initialClass || list[0].name);
+          }
+        }
+      })
+      .catch((err) => console.warn('Could not load courses in admission page:', err))
+      .finally(() => {
+        if (isMounted) setCoursesLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
   }, [initialClass]);
 
-  const classOptions = [
+  const fallbackClassOptions = [
     'Class 1–5 (Primary)',
     'Class 6–8 (Middle School)',
     'Class 9 (Matric Science)',
@@ -64,6 +102,14 @@ export const AdmissionsPage: React.FC = () => {
     'Spoken English & Communication Skills',
     'Special Board Revision & Test Series'
   ];
+
+  const selectedCourse = courses.find(
+    (c) =>
+      c.name === requestedClass ||
+      c.classGrade === requestedClass ||
+      c.id === requestedClass ||
+      `${c.name} (${c.classGrade})` === requestedClass
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -412,22 +458,60 @@ export const AdmissionsPage: React.FC = () => {
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Requested Coaching Class / Course *
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                      <span>Requested Coaching Class / Course (کورس یا کلاس منتخب کریں) *</span>
+                      {coursesLoading && <span className="text-[10px] text-blue-600 font-normal">Loading courses...</span>}
                     </label>
                     <select
                       required
                       value={requestedClass}
                       onChange={(e) => setRequestedClass(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-medium text-blue-900"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-semibold text-blue-900 bg-white"
                     >
-                      {classOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
+                      {courses.length > 0 && (
+                        <optgroup label="Available Coaching Programs & Courses (اکیڈمی کے کورسز)">
+                          {courses.map((c) => (
+                            <option key={c.id || c.name} value={c.name}>
+                              {c.name} — {c.classGrade} (PKR {c.feeMonthly.toLocaleString()}/mo)
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      <optgroup label="General School Classes (عام کلاسز)">
+                        {fallbackClassOptions.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </optgroup>
                     </select>
+
+                    {/* Selected Course Quick Overview Card */}
+                    {selectedCourse && (
+                      <div className="mt-2.5 p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200/80 text-xs space-y-2 animate-in fade-in">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                            {selectedCourse.name}
+                          </span>
+                          <span className="text-xs font-black text-blue-900 bg-blue-100/90 px-2.5 py-1 rounded-lg font-mono">
+                            Monthly: PKR {selectedCourse.feeMonthly.toLocaleString()}/month
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-slate-600 pt-1.5 border-t border-blue-200/60">
+                          <div>
+                            <strong className="text-slate-800">Registration / Admission:</strong> PKR {selectedCourse.feeAdmission?.toLocaleString() || '1,000'}
+                          </div>
+                          <div>
+                            <strong className="text-slate-800">Class Timings:</strong> {selectedCourse.schedule || 'Regular Evening'}
+                          </div>
+                          <div>
+                            <strong className="text-slate-800">Faculty:</strong> {selectedCourse.teacherName || 'Academy Specialist Faculty'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
