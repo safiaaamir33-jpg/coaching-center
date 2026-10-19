@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AcademyProvider } from './context/AcademyContext';
 import { testConnection } from './firebase/config';
@@ -97,6 +97,9 @@ export default function App() {
               <Route path="chatbot" element={<ChatbotSettingsManager />} />
               <Route path="settings" element={<SettingsManager />} />
             </Route>
+
+            {/* Fallback route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>
       </AcademyProvider>
