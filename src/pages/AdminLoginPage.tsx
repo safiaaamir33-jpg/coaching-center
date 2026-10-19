@@ -30,7 +30,7 @@ export const AdminLoginPage: React.FC = () => {
   } = useAuth();
   const { settings } = useAcademy();
 
-  const [activeTab, setActiveTab] = useState<'google' | 'password' | 'setup'>('google');
+  const [activeTab, setActiveTab] = useState<'password' | 'google' | 'setup'>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -50,10 +50,9 @@ export const AdminLoginPage: React.FC = () => {
     setInProgress(true);
     try {
       await signInWithGoogle();
-      // Auth state listener in AuthContext will update currentUser and isAdmin
     } catch (err: unknown) {
       console.error('Google login error:', err);
-      setAuthError(err instanceof Error ? err.message : 'Google authentication failed. Please try again.');
+      setAuthError(err instanceof Error ? err.message : 'Google authentication failed. Please try again or use email/password.');
     } finally {
       setInProgress(false);
     }
@@ -73,8 +72,8 @@ export const AdminLoginPage: React.FC = () => {
       await signInWithEmailPassword(email, password);
     } catch (err: any) {
       console.error('Password login error:', err);
-      if (err?.code === 'auth/invalid-credential' || err?.code === 'auth/user-not-found') {
-        setAuthError('Invalid credentials. If this is your first time, click "Set Admin Password" to create your password, or use Google Sign-In.');
+      if (err?.code === 'auth/invalid-credential' || err?.code === 'auth/user-not-found' || err?.code === 'auth/wrong-password') {
+        setAuthError('Invalid email or password. Please verify your credentials and try again.');
       } else {
         setAuthError(err?.message || 'Authentication failed. Please verify your credentials.');
       }
@@ -103,18 +102,17 @@ export const AdminLoginPage: React.FC = () => {
     setInProgress(true);
     try {
       await createAdminAccount(email, password);
-      setAuthSuccess('Admin password successfully created! You are now logged in.');
+      setAuthSuccess('Admin password successfully saved! You are now logged in.');
     } catch (err: any) {
       console.error('Account setup error:', err);
       if (err?.code === 'auth/email-already-in-use') {
-        // Password exists, offer reset or normal sign in
         try {
           await signInWithEmailPassword(email, password);
         } catch {
-          setAuthError('This email is already registered. If you forgot the password, please sign in with Google or request a password reset.');
+          setAuthError('This email is already registered. If you forgot the password, please request a password reset.');
         }
       } else {
-        setAuthError(err?.message || 'Failed to create admin password.');
+        setAuthError(err?.message || 'Failed to set admin password.');
       }
     } finally {
       setInProgress(false);
@@ -130,7 +128,7 @@ export const AdminLoginPage: React.FC = () => {
     setAuthError(null);
     try {
       await resetPassword(email);
-      setAuthSuccess(`Password reset link sent to ${email}. Please check your inbox.`);
+      setAuthSuccess(`Password reset instructions sent to ${email}. Please check your inbox.`);
     } catch (err: any) {
       setAuthError(err?.message || 'Failed to send password reset email.');
     } finally {
@@ -200,23 +198,8 @@ export const AdminLoginPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tab Selection: Google (Easiest) vs Password vs Setup */}
+        {/* Tab Selection: Password vs Google vs Setup */}
         <div className="flex p-1 bg-slate-100 rounded-xl text-[11px] font-bold">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab('google');
-              setAuthError(null);
-            }}
-            className={`flex-1 py-2 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
-              activeTab === 'google'
-                ? 'bg-white text-blue-900 shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            Google (1-Click)
-          </button>
           <button
             type="button"
             onClick={() => {
@@ -229,8 +212,23 @@ export const AdminLoginPage: React.FC = () => {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Lock className="w-3.5 h-3.5" />
+            <Lock className="w-3.5 h-3.5 text-blue-900" />
             Password
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('google');
+              setAuthError(null);
+            }}
+            className={`flex-1 py-2 rounded-lg transition cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeTab === 'google'
+                ? 'bg-white text-blue-900 shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            Google
           </button>
           <button
             type="button"
@@ -245,53 +243,11 @@ export const AdminLoginPage: React.FC = () => {
             }`}
           >
             <KeyRound className="w-3.5 h-3.5 text-emerald-600" />
-            Set Password
+            Reset / Set
           </button>
         </div>
 
-        {/* TAB 1: Google 1-Click Login (No password required!) */}
-        {activeTab === 'google' && (
-          <div className="space-y-4 pt-1">
-            <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#070f1e] to-[#0f2042] border border-blue-900/60 text-xs text-white space-y-1 shadow-md">
-              <div className="font-bold flex items-center gap-1.5 text-amber-400">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                پاس ورڈ کی ضرورت نہیں ہے (No Password Needed)
-              </div>
-              <p className="text-[11px] leading-relaxed text-blue-100">
-                آپ کا مجاز ای میل ایڈریس سسٹم میں رجسٹرڈ ہے۔ نیچے دیے گئے بٹن پر کلک کر کے بغیر کسی پاس ورڈ کے براہِ راست گوگل سے لاگ ان کریں:
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={inProgress}
-              className="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-3 shadow-md transition cursor-pointer"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
-                <path
-                  fill="#EA4335"
-                  d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
-                />
-                <path
-                  fill="#4285F4"
-                  d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"
-                />
-              </svg>
-              {inProgress ? 'Connecting to Google...' : 'Sign in with Google (1-Click)'}
-            </button>
-          </div>
-        )}
-
-        {/* TAB 2: Email & Password Form */}
+        {/* TAB 1: Password Login */}
         {activeTab === 'password' && (
           <form onSubmit={handlePasswordLogin} className="space-y-4 pt-1">
             <div>
@@ -306,6 +262,7 @@ export const AdminLoginPage: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@brightfuture.edu.pk"
+                  autoComplete="username"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
                 />
               </div>
@@ -314,7 +271,7 @@ export const AdminLoginPage: React.FC = () => {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-semibold text-slate-700">
-                  Password (پاس ورڈ)
+                  Password
                 </label>
                 <button
                   type="button"
@@ -352,16 +309,58 @@ export const AdminLoginPage: React.FC = () => {
               className="w-full py-3 px-4 bg-gradient-to-r from-[#070f1e] via-[#0f2042] to-[#172554] hover:from-[#0b172a] hover:to-[#0f2042] disabled:opacity-60 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition cursor-pointer flex items-center justify-center gap-2 border border-blue-900/60"
             >
               <Lock className="w-4 h-4 text-amber-400" />
-              {inProgress ? 'Signing in...' : 'Sign in with Password'}
+              {inProgress ? 'Authenticating...' : 'Sign In to Admin Portal'}
             </button>
           </form>
+        )}
+
+        {/* TAB 2: Google 1-Click Login */}
+        {activeTab === 'google' && (
+          <div className="space-y-4 pt-1">
+            <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#070f1e] to-[#0f2042] border border-blue-900/60 text-xs text-white space-y-1 shadow-md">
+              <div className="font-bold flex items-center gap-1.5 text-amber-400">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                Google Workspace Sign-In
+              </div>
+              <p className="text-[11px] leading-relaxed text-blue-100">
+                Sign in with your verified administrative Google account.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={inProgress}
+              className="w-full py-3.5 px-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-3 shadow-md transition cursor-pointer"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24">
+                <path
+                  fill="#EA4335"
+                  d="M12 5c1.6 0 3 .6 4.1 1.7l3.1-3.1C17.3 1.8 14.8 1 12 1 7.5 1 3.7 3.6 1.9 7.3l3.7 2.9C6.5 7.3 9 5 12 5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5c-.3 1.5-1.1 2.8-2.4 3.7l3.7 2.9c2.2-2 3.7-5 3.7-8.8z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.6 14.8c-.2-.7-.4-1.5-.4-2.8s.2-2.1.4-2.8L1.9 6.3C.7 8.7 0 10.3 0 12s.7 3.3 1.9 5.7l3.7-2.9z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c3.2 0 6-1.1 8-3l-3.7-2.9c-1.1.7-2.5 1.2-4.3 1.2-3 0-5.5-2.3-6.4-5.2L1.9 16c1.8 3.7 5.6 7 10.1 7z"
+                />
+              </svg>
+              {inProgress ? 'Connecting to Google...' : 'Sign in with Google'}
+            </button>
+          </div>
         )}
 
         {/* TAB 3: Set / Create Custom Password */}
         {activeTab === 'setup' && (
           <form onSubmit={handleSetupPassword} className="space-y-4 pt-1">
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900">
-              <strong>اپنا نیا پاس ورڈ سیٹ کریں:</strong> آپ اپنے مجاز ای میل کے لیے کوئی بھی نیا پاس ورڈ (کم از کم 6 ہندسے) یہاں منتخب کر سکتے ہیں۔
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-950">
+              <strong>Set Administrative Password:</strong> Choose a secure password (minimum 6 characters) for your authorized administrative email.
             </div>
 
             <div>
@@ -375,6 +374,7 @@ export const AdminLoginPage: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@brightfuture.edu.pk"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs sm:text-sm text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-600 focus:bg-white transition"
                 />
               </div>
@@ -382,7 +382,7 @@ export const AdminLoginPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Choose New Password (نیا پاس ورڈ درج کریں)
+                New Password
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -398,6 +398,7 @@ export const AdminLoginPage: React.FC = () => {
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -406,7 +407,7 @@ export const AdminLoginPage: React.FC = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Confirm Password (دوبارہ لکھیں)
+                Confirm Password
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -427,7 +428,7 @@ export const AdminLoginPage: React.FC = () => {
               className="w-full py-3 px-4 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-60 text-white rounded-xl text-xs font-bold uppercase tracking-wider shadow-md transition cursor-pointer flex items-center justify-center gap-2"
             >
               <KeyRound className="w-4 h-4" />
-              {inProgress ? 'Setting Password...' : 'Save & Set Admin Password'}
+              {inProgress ? 'Saving Password...' : 'Save & Set Admin Password'}
             </button>
           </form>
         )}

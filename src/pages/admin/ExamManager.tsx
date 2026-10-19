@@ -160,7 +160,7 @@ export const ExamManager: React.FC = () => {
     setDeletingExam(true);
     try {
       setExams((prev) => prev.filter((e) => e.id !== target.id && e.title !== target.title));
-      await deleteExam(target.id);
+      await deleteExam(target.id!);
       setExamToDelete(null);
       await loadData();
     } catch (err) {

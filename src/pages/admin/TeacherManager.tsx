@@ -220,7 +220,7 @@ export const TeacherManager: React.FC = () => {
     setDeletingTeacher(true);
     try {
       setTeachers((prev) => prev.filter((t) => t.id !== target.id && t.name !== target.name));
-      await deleteTeacher(target.id);
+      await deleteTeacher(target.id!);
       setTeacherToDelete(null);
       await loadData();
     } catch (err) {

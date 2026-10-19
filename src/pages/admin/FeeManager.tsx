@@ -45,6 +45,7 @@ export const FeeManager: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Print voucher modal
   const [voucherToPrint, setVoucherToPrint] = useState<FeePayment | null>(null);

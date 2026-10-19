@@ -114,7 +114,7 @@ export const CourseManager: React.FC = () => {
     setDeleting(true);
     try {
       setCourses((prev) => prev.filter((c) => c.id !== target.id && c.name !== target.name));
-      await deleteCourse(target.id);
+      await deleteCourse(target.id!);
       setCourseToDelete(null);
       await loadCourses();
     } catch (err) {

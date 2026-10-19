@@ -52,7 +52,7 @@ export const ReviewManager: React.FC = () => {
     setDeletingReview(true);
     try {
       setReviews((prev) => prev.filter((r) => r.id !== target.id));
-      await deleteReview(target.id);
+      await deleteReview(target.id!);
       setReviewToDelete(null);
       await loadReviews();
     } catch (err) {
