@@ -42,9 +42,9 @@ import { ChatbotSettingsManager } from './pages/admin/ChatbotSettingsManager';
 
 const PublicLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-hidden">
       <Navbar />
-      <main className="flex-1 pb-16 md:pb-0">
+      <main className="flex-1 w-full max-w-full overflow-x-hidden">
         <Outlet />
       </main>
       <Footer />

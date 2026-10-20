@@ -126,7 +126,7 @@ export const AdmissionStatusPage: React.FC = () => {
                 value={refInput}
                 onChange={(e) => setRefInput(e.target.value.toUpperCase())}
                 placeholder="e.g. ADM-784912"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-mono text-sm uppercase focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 font-mono text-base sm:text-sm uppercase focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
               />
             </div>
 
@@ -139,7 +139,7 @@ export const AdmissionStatusPage: React.FC = () => {
                 value={phoneInput}
                 onChange={(e) => setPhoneInput(e.target.value)}
                 placeholder="0300-1234567"
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
               />
             </div>
 

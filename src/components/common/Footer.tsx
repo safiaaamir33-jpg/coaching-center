@@ -17,7 +17,7 @@ export const Footer: React.FC = () => {
   const { settings } = useAcademy();
 
   return (
-    <footer className="bg-[#070f1e] text-slate-300 pt-16 pb-8 border-t border-blue-950">
+    <footer className="bg-[#070f1e] text-slate-300 pt-16 pb-8 mb-14 md:mb-0 border-t border-blue-950 max-w-full overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-blue-950/80">
           {/* Academy Profile */}

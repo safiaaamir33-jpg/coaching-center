@@ -201,44 +201,31 @@ export async function getPublishedCourses(): Promise<Course[]> {
     console.warn('Error fetching published courses from DB:', error);
   }
 
-  // Seed default courses to Firestore if DB has no courses yet
-  if (dbList.length === 0 && INITIAL_COURSES.length > 0) {
-    INITIAL_COURSES.forEach((initC, i) => {
-      const initId = `init-${i}`;
-      const norm = initC.name.trim().toLowerCase();
-      if (!deletedIds.includes(initId) && !deletedIds.includes(norm)) {
-        const payload = cleanFirestoreCourse({
-          id: initId,
-          ...initC,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
-        setDoc(doc(db, COLLECTION_NAME, initId), payload).catch(() => {});
-      }
-    });
-  }
+  // Group into custom courses (created by admin) and initial default courses
+  const customMap = new Map<string, Course>();
+  const initialMap = new Map<string, Course>();
 
-  const map = new Map<string, Course>();
-  INITIAL_COURSES.forEach((c, i) => {
-    const id = `init-${i}`;
-    const norm = c.name.trim().toLowerCase();
-    if (!deletedIds.includes(id) && !deletedIds.includes(norm)) {
-      map.set(norm, { id, ...c });
-    }
-  });
-
+  // 1. Process DB courses from Firestore
   dbList.forEach((c) => {
     const norm = c.name?.trim().toLowerCase() || c.id || '';
     if (!deletedIds.includes(c.id || '') && !deletedIds.includes(norm)) {
-      map.set(norm, c);
+      if (c.id?.startsWith('init-')) {
+        initialMap.set(norm, c);
+      } else {
+        customMap.set(norm, c);
+      }
     }
   });
 
-  // Local custom courses override or add, and sync up to Firestore
+  // 2. Process local custom courses
   localList.forEach((c) => {
     const norm = c.name?.trim().toLowerCase() || c.id || '';
     if (!deletedIds.includes(c.id || '') && !deletedIds.includes(norm)) {
-      map.set(norm, c);
+      if (c.id?.startsWith('init-')) {
+        initialMap.set(norm, c);
+      } else {
+        customMap.set(norm, c);
+      }
       if (c.id && !dbList.some((d) => d.id === c.id || d.name?.trim().toLowerCase() === c.name?.trim().toLowerCase())) {
         const cleaned = cleanFirestoreCourse(c);
         setDoc(doc(db, COLLECTION_NAME, c.id), cleaned).catch(() => {});
@@ -246,7 +233,25 @@ export async function getPublishedCourses(): Promise<Course[]> {
     }
   });
 
-  return Array.from(map.values());
+  // 3. Process default initial courses as secondary fallback
+  INITIAL_COURSES.forEach((c, i) => {
+    const id = `init-${i}`;
+    const norm = c.name.trim().toLowerCase();
+    if (!deletedIds.includes(id) && !deletedIds.includes(norm) && !customMap.has(norm) && !initialMap.has(norm)) {
+      initialMap.set(norm, { id, ...c });
+    }
+  });
+
+  // Sort custom courses by creation date descending (newest courses at the VERY TOP)
+  const customCourses = Array.from(customMap.values()).sort((a, b) => {
+    const dateA = a.createdAt || '';
+    const dateB = b.createdAt || '';
+    return dateB.localeCompare(dateA);
+  });
+  const initialCourses = Array.from(initialMap.values());
+
+  // Custom courses added by admin appear first!
+  return [...customCourses, ...initialCourses];
 }
 
 export async function getAllCourses(): Promise<Course[]> {
@@ -271,27 +276,28 @@ export async function getAllCourses(): Promise<Course[]> {
     console.warn('Error fetching all courses from DB:', error);
   }
 
-  const map = new Map<string, Course>();
-  INITIAL_COURSES.forEach((c, i) => {
-    const id = `init-${i}`;
-    const norm = c.name.trim().toLowerCase();
-    if (!deletedIds.includes(id) && !deletedIds.includes(norm)) {
-      map.set(norm, { id, ...c });
-    }
-  });
+  const customMap = new Map<string, Course>();
+  const initialMap = new Map<string, Course>();
 
   dbList.forEach((c) => {
     const norm = c.name?.trim().toLowerCase() || c.id || '';
     if (!deletedIds.includes(c.id || '') && !deletedIds.includes(norm)) {
-      map.set(norm, c);
+      if (c.id?.startsWith('init-')) {
+        initialMap.set(norm, c);
+      } else {
+        customMap.set(norm, c);
+      }
     }
   });
 
-  // Sync any local courses up to Firestore
   localList.forEach((c) => {
     const norm = c.name?.trim().toLowerCase() || c.id || '';
     if (!deletedIds.includes(c.id || '') && !deletedIds.includes(norm)) {
-      map.set(norm, c);
+      if (c.id?.startsWith('init-')) {
+        initialMap.set(norm, c);
+      } else {
+        customMap.set(norm, c);
+      }
       if (c.id && !dbList.some((d) => d.id === c.id || d.name?.trim().toLowerCase() === c.name?.trim().toLowerCase())) {
         const cleaned = cleanFirestoreCourse(c);
         setDoc(doc(db, COLLECTION_NAME, c.id), cleaned).catch(() => {});
@@ -299,7 +305,22 @@ export async function getAllCourses(): Promise<Course[]> {
     }
   });
 
-  return Array.from(map.values());
+  INITIAL_COURSES.forEach((c, i) => {
+    const id = `init-${i}`;
+    const norm = c.name.trim().toLowerCase();
+    if (!deletedIds.includes(id) && !deletedIds.includes(norm) && !customMap.has(norm) && !initialMap.has(norm)) {
+      initialMap.set(norm, { id, ...c });
+    }
+  });
+
+  const customCourses = Array.from(customMap.values()).sort((a, b) => {
+    const dateA = a.createdAt || '';
+    const dateB = b.createdAt || '';
+    return dateB.localeCompare(dateA);
+  });
+  const initialCourses = Array.from(initialMap.values());
+
+  return [...customCourses, ...initialCourses];
 }
 
 export async function addCourse(course: Omit<Course, 'id'>): Promise<string> {
@@ -332,9 +353,11 @@ export async function addCourse(course: Omit<Course, 'id'>): Promise<string> {
     const cleaned = cleanFirestoreCourse(fullCourse);
     await setDoc(docRef, cleaned);
     console.log('Successfully saved course to Firestore:', localId);
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('bfa_courses_changed'));
     return localId;
   } catch (error) {
     console.warn('Firestore addCourse fallback, saved locally:', error);
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('bfa_courses_changed'));
     return localId;
   }
 }
@@ -348,8 +371,10 @@ export async function updateCourse(id: string, course: Partial<Course>): Promise
     const docRef = doc(db, COLLECTION_NAME, id);
     const cleaned = cleanFirestoreCourse({ ...course, updatedAt: new Date().toISOString() });
     await setDoc(docRef, cleaned, { merge: true });
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('bfa_courses_changed'));
   } catch (error) {
     console.warn('Firestore updateCourse fallback:', error);
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('bfa_courses_changed'));
   }
 }
 
@@ -382,7 +407,9 @@ export async function deleteCourse(id: string): Promise<void> {
       const docRef = doc(db, COLLECTION_NAME, id);
       deleteDoc(docRef).catch(() => {});
     }
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('bfa_courses_changed'));
   } catch (error) {
     console.warn('Firestore deleteCourse fallback:', error);
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('bfa_courses_changed'));
   }
 }

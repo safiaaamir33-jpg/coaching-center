@@ -52,39 +52,48 @@ export const AdmissionsPage: React.FC = () => {
   // Fetch dynamic courses created by admin and published
   useEffect(() => {
     let isMounted = true;
-    getPublishedCourses()
-      .then((list) => {
-        if (!isMounted) return;
-        setCourses(list);
-        if (list.length > 0) {
-          if (initialClass) {
-            const norm = decodeURIComponent(initialClass).trim().toLowerCase();
-            const matched = list.find(
-              (c) =>
-                c.id?.toLowerCase() === norm ||
-                c.name.trim().toLowerCase() === norm ||
-                c.classGrade.trim().toLowerCase() === norm ||
-                c.name.toLowerCase().includes(norm) ||
-                c.classGrade.toLowerCase().includes(norm)
-            );
-            if (matched) {
-              setRequestedClass(matched.name);
-              return;
-            }
-          }
-          // Default to initialClass if set, or first course in list
-          if (!requestedClass) {
-            setRequestedClass(initialClass || list[0].name);
-          }
-        }
-      })
-      .catch((err) => console.warn('Could not load courses in admission page:', err))
-      .finally(() => {
-        if (isMounted) setCoursesLoading(false);
-      });
 
+    const loadCoursesList = () => {
+      getPublishedCourses()
+        .then((list) => {
+          if (!isMounted) return;
+          setCourses(list);
+          if (list.length > 0) {
+            if (initialClass) {
+              const norm = decodeURIComponent(initialClass).trim().toLowerCase();
+              const matched = list.find(
+                (c) =>
+                  c.id?.toLowerCase() === norm ||
+                  c.name.trim().toLowerCase() === norm ||
+                  c.classGrade.trim().toLowerCase() === norm ||
+                  c.name.toLowerCase().includes(norm) ||
+                  c.classGrade.toLowerCase().includes(norm)
+              );
+              if (matched) {
+                setRequestedClass(matched.name);
+                return;
+              }
+            }
+            // Default to initialClass if set, or first course in list (which is the latest added course!)
+            setRequestedClass((prev) => prev || initialClass || list[0].name);
+          }
+        })
+        .catch((err) => console.warn('Could not load courses in admission page:', err))
+        .finally(() => {
+          if (isMounted) setCoursesLoading(false);
+        });
+    };
+
+    loadCoursesList();
+
+    const handleCoursesChanged = () => {
+      loadCoursesList();
+    };
+
+    window.addEventListener('bfa_courses_changed', handleCoursesChanged);
     return () => {
       isMounted = false;
+      window.removeEventListener('bfa_courses_changed', handleCoursesChanged);
     };
   }, [initialClass]);
 
@@ -352,18 +361,18 @@ export const AdmissionsPage: React.FC = () => {
                   </div>
 
                   {/* Student Photo Upload */}
-                  <div className="sm:col-span-2 p-4 bg-blue-50/60 rounded-2xl border border-blue-200/80 flex flex-col sm:flex-row items-center gap-4">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white border-2 border-blue-600/40 shrink-0 flex items-center justify-center shadow-xs">
+                  <div className="sm:col-span-2 p-3 sm:p-4 bg-blue-50/60 rounded-2xl border border-blue-200/80 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 max-w-full overflow-hidden">
+                    <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl overflow-hidden bg-white border-2 border-blue-600/40 shrink-0 flex items-center justify-center shadow-xs">
                       {photoPreview ? (
                         <img src={photoPreview} alt="Student Preview" className="w-full h-full object-cover" />
                       ) : (
                         <div className="text-center p-2 text-slate-400">
-                          <Camera className="w-6 h-6 mx-auto mb-1 text-blue-500" />
+                          <Camera className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 text-blue-500" />
                           <span className="text-[9px] font-bold block uppercase text-slate-500">Student Pic</span>
                         </div>
                       )}
                     </div>
-                    <div className="flex-1 space-y-1 text-center sm:text-left">
+                    <div className="flex-1 space-y-1 text-center sm:text-left min-w-0 w-full">
                       <label className="block text-xs font-bold text-slate-900">
                         Student Passport Photo / Picture (طالب علم کی تصویر)
                       </label>
@@ -382,10 +391,10 @@ export const AdmissionsPage: React.FC = () => {
                             setPhotoPreview(null);
                           }
                         }}
-                        className="text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#0f2042] file:text-amber-300 hover:file:bg-[#1a365d] cursor-pointer"
+                        className="w-full text-xs text-slate-600 file:mr-2 sm:file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#0f2042] file:text-amber-300 hover:file:bg-[#1a365d] cursor-pointer"
                       />
                       {photoFile && (
-                        <span className="text-[11px] text-emerald-700 font-semibold block">
+                        <span className="text-[11px] text-emerald-700 font-semibold block truncate">
                           ✓ Photo Selected: {photoFile.name}
                         </span>
                       )}
@@ -459,10 +468,42 @@ export const AdmissionsPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
                       <span>Requested Coaching Class / Course (کورس یا کلاس منتخب کریں) *</span>
                       {coursesLoading && <span className="text-[10px] text-blue-600 font-normal">Loading courses...</span>}
                     </label>
+
+                    {/* Quick tap chips for recently added and featured academy courses */}
+                    {courses.length > 0 && (
+                      <div className="mb-2.5">
+                        <span className="text-[11px] text-slate-500 font-medium block mb-1.5">
+                          Tap to select program directly (براہ راست کورس منتخب کریں):
+                        </span>
+                        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 max-w-full touch-pan-x">
+                          {courses.map((c) => {
+                            const isSelected = requestedClass === c.name || requestedClass === c.id;
+                            return (
+                              <button
+                                key={c.id || c.name}
+                                type="button"
+                                onClick={() => setRequestedClass(c.name)}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition shrink-0 cursor-pointer border ${
+                                  isSelected
+                                    ? 'bg-[#0f2042] text-amber-300 border-amber-400 shadow-xs'
+                                    : 'bg-slate-100 text-slate-700 hover:bg-blue-50 border-slate-200'
+                                }`}
+                              >
+                                {c.name}
+                                <span className="ml-1 text-[10px] opacity-80 font-mono">
+                                  PKR {c.feeMonthly.toLocaleString()}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     <select
                       required
                       value={requestedClass}
@@ -489,14 +530,14 @@ export const AdmissionsPage: React.FC = () => {
 
                     {/* Selected Course Quick Overview Card */}
                     {selectedCourse && (
-                      <div className="mt-2.5 p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200/80 text-xs space-y-2 animate-in fade-in">
+                      <div className="mt-2.5 p-3.5 bg-blue-50/80 rounded-2xl border border-blue-200/80 text-xs space-y-2 animate-in fade-in max-w-full overflow-hidden">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="font-bold text-slate-900 flex items-center gap-1.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
-                            {selectedCourse.name}
+                          <span className="font-bold text-slate-900 flex items-center gap-1.5 truncate">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse shrink-0"></span>
+                            <span className="truncate">{selectedCourse.name}</span>
                           </span>
-                          <span className="text-xs font-black text-blue-900 bg-blue-100/90 px-2.5 py-1 rounded-lg font-mono">
-                            Monthly: PKR {selectedCourse.feeMonthly.toLocaleString()}/month
+                          <span className="text-xs font-black text-blue-900 bg-blue-100/90 px-2.5 py-1 rounded-lg font-mono shrink-0">
+                            Monthly: PKR {selectedCourse.feeMonthly.toLocaleString()}/mo
                           </span>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-slate-600 pt-1.5 border-t border-blue-200/60">
@@ -540,18 +581,18 @@ export const AdmissionsPage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="sm:col-span-2">
+                  <div className="sm:col-span-2 max-w-full overflow-hidden">
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       Optional Document Upload (B-Form, Result Card, or Photo)
                     </label>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 max-w-full">
                       <input
                         type="file"
                         accept="image/*,.pdf"
                         onChange={(e) => setFile(e.target.files?.[0] || null)}
-                        className="text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#0f2042] file:text-amber-300 hover:file:bg-[#172554] cursor-pointer"
+                        className="w-full sm:w-auto text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#0f2042] file:text-amber-300 hover:file:bg-[#172554] cursor-pointer"
                       />
-                      {file && <span className="text-xs text-emerald-600 font-medium">Selected: {file.name}</span>}
+                      {file && <span className="text-xs text-emerald-600 font-medium truncate max-w-full">Selected: {file.name}</span>}
                     </div>
                   </div>
 

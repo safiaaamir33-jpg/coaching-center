@@ -44,7 +44,7 @@ export const HomePage: React.FC = () => {
           getPublishedAnnouncements(),
           getApprovedReviews(),
         ]);
-        setCourses(c.slice(0, 4));
+        setCourses(c.slice(0, 8));
         setTeachers(t.slice(0, 4));
         setAnnouncements(a.slice(0, 6));
         setReviews(r.slice(0, 3));
@@ -55,6 +55,12 @@ export const HomePage: React.FC = () => {
       }
     }
     loadData();
+
+    const handleCoursesChanged = () => {
+      getPublishedCourses().then((c) => setCourses(c.slice(0, 8))).catch(() => {});
+    };
+    window.addEventListener('bfa_courses_changed', handleCoursesChanged);
+    return () => window.removeEventListener('bfa_courses_changed', handleCoursesChanged);
   }, []);
 
   return (
@@ -94,17 +100,17 @@ export const HomePage: React.FC = () => {
                 {settings.tagline}
               </p>
 
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center lg:justify-start gap-3 sm:gap-4 pt-2 w-full sm:w-auto">
                 <Link
                   to="/admissions"
-                  className="px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm tracking-wide shadow-lg shadow-amber-500/25 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
+                  className="px-6 py-3.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-sm tracking-wide shadow-lg shadow-amber-500/25 transition transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2"
                 >
                   <Sparkles className="w-4 h-4 text-slate-900" />
                   Apply for Admission
                 </Link>
                 <Link
                   to="/courses"
-                  className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/20 backdrop-blur-xs transition"
+                  className="px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/20 backdrop-blur-xs transition flex items-center justify-center"
                 >
                   View Courses & Fees
                 </Link>
@@ -112,7 +118,7 @@ export const HomePage: React.FC = () => {
                   href={`https://wa.me/${settings.whatsappNumber.replace(/\D/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-4 py-3.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-white font-semibold text-sm flex items-center gap-2 transition"
+                  className="px-4 py-3.5 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-white font-semibold text-sm flex items-center justify-center gap-2 transition"
                 >
                   <MessageCircle className="w-4 h-4" />
                   WhatsApp Inquiry
@@ -626,32 +632,6 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Mobile Floating Quick Contact Bar (Coaching Academy Style) */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-3 py-2 flex items-center justify-between gap-2 shadow-2xl">
-        <a
-          href={`tel:${settings.phone}`}
-          className="flex-1 py-2 px-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-center text-[11px] font-bold flex items-center justify-center gap-1.5 transition"
-        >
-          <Phone className="w-3.5 h-3.5 text-blue-400" />
-          <span>Call Desk</span>
-        </a>
-        <a
-          href={`https://wa.me/${settings.whatsappNumber.replace(/\D/g, '')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex-1 py-2 px-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-center text-[11px] font-bold flex items-center justify-center gap-1.5 transition"
-        >
-          <MessageCircle className="w-3.5 h-3.5" />
-          <span>WhatsApp</span>
-        </a>
-        <Link
-          to="/admissions"
-          className="flex-1 py-2 px-2 bg-blue-700 hover:bg-blue-800 text-white rounded-xl text-center text-[11px] font-bold flex items-center justify-center gap-1.5 transition"
-        >
-          <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-          <span>Apply Now</span>
-        </Link>
-      </div>
     </div>
   );
 };

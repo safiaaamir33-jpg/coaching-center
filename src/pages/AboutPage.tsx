@@ -35,7 +35,7 @@ export const AboutPage: React.FC = () => {
             <Sparkles className="w-3.5 h-3.5 text-amber-300" />
             <span>Educational Heritage & Excellence in Sadiqabad</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black font-serif tracking-tight">
+          <h1 className="text-2xl sm:text-5xl font-black font-serif tracking-tight leading-tight break-words">
             About {settings.academyName}
           </h1>
           <p className="text-blue-100 text-sm sm:text-base max-w-2xl mx-auto font-light">

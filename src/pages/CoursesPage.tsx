@@ -23,31 +23,42 @@ export const CoursesPage: React.FC = () => {
   const [selectedGrade, setSelectedGrade] = useState('All');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchCourses = () => {
     getPublishedCourses()
       .then(setCourses)
       .catch(console.error)
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchCourses();
+    const handleCoursesChanged = () => fetchCourses();
+    window.addEventListener('bfa_courses_changed', handleCoursesChanged);
+    return () => window.removeEventListener('bfa_courses_changed', handleCoursesChanged);
   }, []);
 
-  const categories = [
-    'All',
-    'Class 9',
-    'Class 10',
-    'Class 11 (F.Sc)',
-    'Class 12 (F.Sc)',
-    'Class 11 & 12 (ICS)',
-    'Class 1–8',
-    'All Age Groups'
-  ];
+  // Dynamically derive categories from all available courses so admin's custom courses get their own category
+  const categories = React.useMemo(() => {
+    const set = new Set<string>(['All']);
+    courses.forEach((c) => {
+      if (c.classGrade?.trim()) {
+        set.add(c.classGrade.trim());
+      }
+    });
+    return Array.from(set);
+  }, [courses]);
 
   const filteredCourses = courses.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.description.toLowerCase().includes(searchTerm.toLowerCase());
+      c.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.classGrade.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const matchesGrade = selectedGrade === 'All' || c.classGrade.includes(selectedGrade) || selectedGrade.includes(c.classGrade);
+    const matchesGrade =
+      selectedGrade === 'All' ||
+      c.classGrade.trim().toLowerCase() === selectedGrade.trim().toLowerCase() ||
+      c.classGrade.toLowerCase().includes(selectedGrade.toLowerCase());
 
     return matchesSearch && matchesGrade;
   });

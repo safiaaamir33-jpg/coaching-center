@@ -38,45 +38,45 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-xs border-b border-slate-200">
       {/* Top emergency / quick contact bar */}
-      <div className="bg-[#070f1e] text-blue-100 text-xs py-1.5 px-4 sm:px-8 flex justify-between items-center border-b border-blue-950">
-        <div className="flex items-center gap-4 overflow-hidden whitespace-nowrap">
-          <span className="flex items-center gap-1.5 font-medium">
-            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            {settings.city}, {settings.province}
+      <div className="bg-[#070f1e] text-blue-100 text-xs py-1.5 px-3 sm:px-8 flex justify-between items-center border-b border-blue-950 max-w-full overflow-hidden">
+        <div className="flex items-center gap-2 sm:gap-4 overflow-hidden whitespace-nowrap min-w-0 flex-1 mr-2">
+          <span className="flex items-center gap-1.5 font-medium text-[11px] sm:text-xs truncate">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+            <span className="truncate">{settings.city}, {settings.province}</span>
           </span>
           <span className="hidden sm:inline-block text-blue-400">•</span>
-          <span className="hidden sm:flex items-center gap-1">
-            <Phone className="w-3 h-3 text-amber-400" />
-            {settings.phone}
+          <span className="hidden sm:flex items-center gap-1 text-xs">
+            <Phone className="w-3 h-3 text-amber-400 shrink-0" />
+            <span className="truncate">{settings.phone}</span>
           </span>
           {settings.marqueeAnnouncement && (
-            <span className="hidden md:inline-block text-amber-300 font-medium">
+            <span className="hidden md:inline-block text-amber-300 font-medium truncate">
               {settings.marqueeAnnouncement}
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           <a
             href={`https://wa.me/${settings.whatsappNumber.replace(/\D/g, '')}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 transition"
+            className="flex items-center gap-1 text-emerald-400 hover:text-emerald-300 text-[11px] sm:text-xs transition font-medium"
           >
-            <MessageCircle className="w-3.5 h-3.5" />
-            <span className="hidden xs:inline">WhatsApp</span>
+            <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+            <span>WhatsApp</span>
           </a>
           {currentUser && isAdmin ? (
             <Link
               to="/admin"
-              className="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold px-2 py-0.5 rounded text-xs transition shadow-xs"
+              className="flex items-center gap-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold px-2 py-0.5 rounded text-[11px] sm:text-xs transition shadow-xs"
             >
               <ShieldCheck className="w-3 h-3" />
-              Admin Portal
+              Admin
             </Link>
           ) : (
             <Link
               to="/admin/login"
-              className="text-slate-300 hover:text-white transition flex items-center gap-1"
+              className="text-slate-300 hover:text-white transition flex items-center gap-1 text-[11px] sm:text-xs"
             >
               <ShieldCheck className="w-3 h-3 text-amber-400" />
               Staff Login
@@ -86,27 +86,27 @@ export const Navbar: React.FC = () => {
       </div>
 
       {/* Main navigation container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-20">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between h-16 sm:h-20 max-w-full">
         {/* Brand */}
-        <Link to="/" className="flex items-center gap-3 group">
+        <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1 mr-2">
           {settings.logoUrl ? (
-            <div className="w-13 h-13 rounded-2xl overflow-hidden bg-white flex items-center justify-center shadow-md shadow-[#0f2042]/20 group-hover:scale-105 transition transform border border-amber-400/50 p-0.5 shrink-0">
+            <div className="w-10 h-10 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl overflow-hidden bg-white flex items-center justify-center shadow-md shadow-[#0f2042]/20 group-hover:scale-105 transition transform border border-amber-400/50 p-0.5 shrink-0">
               <img
                 src={settings.logoUrl}
                 alt={settings.academyName}
-                className="w-full h-full object-contain rounded-xl"
+                className="w-full h-full object-contain rounded-lg sm:rounded-xl"
               />
             </div>
           ) : (
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#070f1e] via-[#0f2042] to-[#1e3a8a] flex items-center justify-center text-white shadow-md shadow-[#0f2042]/30 group-hover:scale-105 transition transform border border-blue-900/50 shrink-0">
-              <GraduationCap className="w-7 h-7 text-amber-300" />
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-[#070f1e] via-[#0f2042] to-[#1e3a8a] flex items-center justify-center text-white shadow-md shadow-[#0f2042]/30 group-hover:scale-105 transition transform border border-blue-900/50 shrink-0">
+              <GraduationCap className="w-5 h-5 sm:w-7 sm:h-7 text-amber-300" />
             </div>
           )}
-          <div>
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-[#070f1e] font-serif leading-none">
+          <div className="min-w-0 flex-1">
+            <div className="text-sm sm:text-xl md:text-2xl font-black tracking-tight text-[#070f1e] font-serif leading-tight truncate sm:overflow-visible sm:whitespace-normal">
               {settings.academyName}
             </div>
-            <div className="text-xs text-[#0f2042] font-bold tracking-wide uppercase mt-1">
+            <div className="text-[9px] sm:text-xs text-[#0f2042] font-semibold tracking-wide uppercase truncate">
               Sadiqabad Campus • Tuition & Board Prep
             </div>
           </div>
@@ -141,16 +141,16 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Mobile menu trigger */}
-        <div className="xl:hidden flex items-center gap-2">
+        <div className="xl:hidden flex items-center gap-2 shrink-0">
           <Link
             to="/admissions"
-            className="px-3 py-1.5 rounded-lg bg-[#0f2042] text-white text-xs font-medium"
+            className="hidden sm:inline-flex px-3 py-1.5 rounded-lg bg-[#0f2042] text-white text-xs font-medium"
           >
             Apply
           </Link>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-slate-700 hover:text-blue-700 hover:bg-slate-100 transition"
+            className="p-2 rounded-lg text-slate-700 hover:text-blue-700 hover:bg-slate-100 transition cursor-pointer"
             aria-label="Toggle navigation"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
