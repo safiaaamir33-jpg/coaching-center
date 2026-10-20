@@ -306,7 +306,7 @@ export const AdmissionsPage: React.FC = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="e.g. Muhammad Ali"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     />
                   </div>
 
@@ -320,7 +320,7 @@ export const AdmissionsPage: React.FC = () => {
                       value={fatherName}
                       onChange={(e) => setFatherName(e.target.value)}
                       placeholder="e.g. Haji Muhammad Tariq"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     />
                   </div>
 
@@ -332,7 +332,7 @@ export const AdmissionsPage: React.FC = () => {
                       type="date"
                       value={dob}
                       onChange={(e) => setDob(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     />
                   </div>
 
@@ -343,7 +343,7 @@ export const AdmissionsPage: React.FC = () => {
                     <select
                       value={gender}
                       onChange={(e) => setGender(e.target.value as any)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     >
                       <option value="male">Male</option>
                       <option value="female">Female</option>
@@ -414,7 +414,7 @@ export const AdmissionsPage: React.FC = () => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="0300-1234567"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     />
                   </div>
 
@@ -428,7 +428,7 @@ export const AdmissionsPage: React.FC = () => {
                       value={guardianPhone}
                       onChange={(e) => setGuardianPhone(e.target.value)}
                       placeholder="0301-7654321"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     />
                   </div>
 
@@ -442,7 +442,7 @@ export const AdmissionsPage: React.FC = () => {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       placeholder="Street, Colony, Ward / Mohallah, Sadiqabad..."
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     />
                   </div>
                 </div>
@@ -467,7 +467,7 @@ export const AdmissionsPage: React.FC = () => {
                       required
                       value={requestedClass}
                       onChange={(e) => setRequestedClass(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-semibold text-blue-900 bg-white"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden font-semibold text-blue-900 bg-white"
                     >
                       {courses.length > 0 && (
                         <optgroup label="Available Coaching Programs & Courses (اکیڈمی کے کورسز)">
@@ -523,7 +523,7 @@ export const AdmissionsPage: React.FC = () => {
                       value={previousEducation}
                       onChange={(e) => setPreviousEducation(e.target.value)}
                       placeholder="e.g. 8th Class Pass, Matric Science"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     />
                   </div>
 
@@ -536,7 +536,7 @@ export const AdmissionsPage: React.FC = () => {
                       value={previousSchool}
                       onChange={(e) => setPreviousSchool(e.target.value)}
                       placeholder="e.g. Govt High School Sadiqabad / Comprehensive College"
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     />
                   </div>
 
@@ -564,7 +564,7 @@ export const AdmissionsPage: React.FC = () => {
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
                       placeholder="Any specific weak subject, timing preference, or questions..."
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-base sm:text-sm focus:ring-2 focus:ring-blue-500 focus:outline-hidden"
                     />
                   </div>
                 </div>

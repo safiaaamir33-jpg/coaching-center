@@ -141,7 +141,7 @@ CRITICAL RULES:
     app.use(vite.middlewares);
 
     // SPA fallback in development mode
-    app.use('*', async (req, res, next) => {
+    app.get('*', async (req, res, next) => {
       const url = req.originalUrl;
       if (url.startsWith('/api')) {
         return next();
@@ -158,7 +158,7 @@ CRITICAL RULES:
     });
   } else {
     app.use(express.static(distPath));
-    app.use('*', (req, res, next) => {
+    app.get('*', (req, res, next) => {
       if (req.originalUrl.startsWith('/api')) {
         return next();
       }

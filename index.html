@@ -2,7 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <script>
+      (function() {
+        var pathname = window.location.pathname;
+        if (pathname && pathname !== '/' && !pathname.startsWith('/api') && !pathname.includes('.')) {
+          var search = window.location.search || '';
+          var hash = window.location.hash || '';
+          window.location.replace('/#' + pathname + search + hash);
+        }
+      })();
+    </script>
     <title>Bright Future Coaching Academy - Sadiqabad</title>
     <meta name="description" content="Comprehensive coaching center management platform and portal for Bright Future Coaching Academy in Sadiqabad, Punjab, Pakistan with admissions, courses, student management, fee tracking, and results." />
     <meta property="og:title" content="Bright Future Coaching Academy - Sadiqabad" />

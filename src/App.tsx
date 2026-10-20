@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { AcademyProvider } from './context/AcademyContext';
 import { testConnection } from './firebase/config';
@@ -8,6 +8,7 @@ import { testConnection } from './firebase/config';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { Chatbot } from './components/common/Chatbot';
+import { MobileBottomNav } from './components/common/MobileBottomNav';
 
 // Public Pages
 import { HomePage } from './pages/HomePage';
@@ -43,11 +44,12 @@ const PublicLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-white">
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 pb-16 md:pb-0">
         <Outlet />
       </main>
       <Footer />
       <Chatbot />
+      <MobileBottomNav />
     </div>
   );
 };
@@ -61,7 +63,7 @@ export default function App() {
   return (
     <AuthProvider>
       <AcademyProvider>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             {/* Public Academy Portal */}
             <Route element={<PublicLayout />}>
@@ -101,7 +103,7 @@ export default function App() {
             {/* Fallback route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </AcademyProvider>
     </AuthProvider>
   );

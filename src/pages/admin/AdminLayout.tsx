@@ -139,6 +139,15 @@ export const AdminLayout: React.FC = () => {
         </Link>
       </div>
 
+      {/* Mobile Backdrop Overlay */}
+      {mobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs z-45 lg:hidden transition-opacity"
+          onClick={() => setMobileSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Sidebar Navigation */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#070f1e] text-slate-300 flex flex-col justify-between transition-transform duration-200 lg:static lg:translate-x-0 border-r border-blue-950 ${

@@ -180,26 +180,29 @@ export const Chatbot: React.FC = () => {
   const botDisplayTagline = botConfig?.botTagline || 'Interactive AI Counselor • Sadiqabad';
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-20 right-3 sm:bottom-6 sm:right-6 z-50">
       {/* Floating Toggle Button with Glowing Badge */}
       {!isOpen ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-3 px-5 py-4 rounded-full bg-gradient-to-r from-[#070f1e] via-[#0f2042] to-[#172554] hover:from-[#0b172a] hover:to-[#0f2042] text-white shadow-2xl shadow-[#070f1e]/50 transition transform hover:scale-105 active:scale-95 cursor-pointer border border-blue-900/60 group"
+          className="flex items-center gap-2.5 sm:gap-3 px-3.5 py-3 sm:px-5 sm:py-4 rounded-full bg-gradient-to-r from-[#070f1e] via-[#0f2042] to-[#172554] hover:from-[#0b172a] hover:to-[#0f2042] text-white shadow-2xl shadow-[#070f1e]/50 transition transform hover:scale-105 active:scale-95 cursor-pointer border border-blue-900/60 group"
           aria-label="Open Chat Assistant"
         >
           <div className="relative">
-            <Bot className="w-6 h-6 text-amber-300 group-hover:rotate-6 transition transform" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-[#070f1e] animate-pulse"></span>
+            <Bot className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 group-hover:rotate-6 transition transform" />
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-[#070f1e] animate-pulse"></span>
           </div>
-          <div className="text-left hidden sm:block">
-            <div className="font-bold text-xs leading-none">{botDisplayName}</div>
-            <div className="text-[10px] text-blue-200 mt-0.5">Online • English & Roman Urdu</div>
+          <div className="text-left">
+            <div className="font-bold text-xs leading-none flex items-center gap-1">
+              <span>{botDisplayName}</span>
+              <span className="sm:hidden text-[9px] bg-emerald-500/20 text-emerald-300 px-1 py-0.5 rounded font-mono">Live</span>
+            </div>
+            <div className="text-[10px] text-blue-200 mt-0.5 hidden sm:block">Online • English & Roman Urdu</div>
           </div>
         </button>
       ) : (
-        /* Chat Window with Luxury Aesthetic */
-        <div className="w-[350px] sm:w-[420px] h-[580px] max-h-[88vh] bg-white rounded-3xl shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        /* Chat Window with Luxury Aesthetic - fully mobile responsive */
+        <div className="w-[calc(100vw-1.5rem)] sm:w-[420px] max-w-[420px] h-[550px] max-h-[78vh] bg-white rounded-3xl shadow-2xl border border-slate-200/90 flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           {/* Header */}
           <div className="bg-gradient-to-r from-[#070f1e] via-[#0f2042] to-[#172554] text-white p-4 flex items-center justify-between border-b border-blue-950">
             <div className="flex items-center gap-3">
