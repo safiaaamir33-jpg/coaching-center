@@ -39,10 +39,8 @@ export const AdminLayout: React.FC = () => {
   useEffect(() => {
     if (currentUser && isAdmin) {
       loadBadgeCounts();
-      const interval = setInterval(loadBadgeCounts, 25000); // refresh every 25s
-      return () => clearInterval(interval);
     }
-  }, [currentUser, isAdmin]);
+  }, [currentUser, isAdmin, location.pathname]);
 
   const loadBadgeCounts = async () => {
     try {

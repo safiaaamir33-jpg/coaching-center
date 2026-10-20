@@ -61,42 +61,76 @@ export const DEFAULT_ACADEMY_SETTINGS: AcademySettings = {
 };
 
 const DOC_PATH = 'academySettings';
+const LOCAL_SETTINGS_KEY = 'bfa_academy_settings';
+
+function getLocalSettings(): AcademySettings | null {
+  try {
+    const raw = localStorage.getItem(LOCAL_SETTINGS_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveLocalSettings(settings: AcademySettings) {
+  try {
+    localStorage.setItem(LOCAL_SETTINGS_KEY, JSON.stringify(settings));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('bfa_settings_changed', { detail: settings }));
+    }
+  } catch {
+    // ignore
+  }
+}
 
 export async function getAcademySettings(): Promise<AcademySettings> {
+  const local = getLocalSettings();
   try {
     const docRef = doc(db, DOC_PATH, 'default');
     const snap = await getDoc(docRef);
     if (snap.exists()) {
       const data = snap.data() as AcademySettings;
-      return {
+      const merged: AcademySettings = {
         id: snap.id,
         ...DEFAULT_ACADEMY_SETTINGS,
+        ...(local || {}),
         ...data,
-        logoUrl: data.logoUrl || DEFAULT_ACADEMY_SETTINGS.logoUrl,
+        logoUrl: data.logoUrl || local?.logoUrl || DEFAULT_ACADEMY_SETTINGS.logoUrl,
       };
+      saveLocalSettings(merged);
+      return merged;
     }
-    // Return default settings if document not yet created
+    if (local) return { ...DEFAULT_ACADEMY_SETTINGS, ...local };
     return DEFAULT_ACADEMY_SETTINGS;
   } catch (error) {
-    console.warn('Error fetching academy settings, using defaults:', error);
+    console.warn('Error fetching academy settings from Firestore (quota limit or offline), using cached/defaults:', error);
+    if (local) return { ...DEFAULT_ACADEMY_SETTINGS, ...local };
     return DEFAULT_ACADEMY_SETTINGS;
   }
 }
 
 export async function updateAcademySettings(settings: Partial<AcademySettings>): Promise<void> {
+  const current = getLocalSettings() || DEFAULT_ACADEMY_SETTINGS;
+  const merged: AcademySettings = {
+    ...current,
+    ...settings,
+    updatedAt: new Date().toISOString(),
+  };
+
+  // 1. Save to local storage IMMEDIATELY so the user's changes take effect right away!
+  saveLocalSettings(merged);
+
+  // 2. Try saving to Firestore via setDoc with merge: true (does NOT do a pre-read!)
   try {
     const docRef = doc(db, DOC_PATH, 'default');
-    const snap = await getDoc(docRef);
-    const updatedData = {
-      ...settings,
-      updatedAt: new Date().toISOString()
-    };
-    if (snap.exists()) {
-      await updateDoc(docRef, updatedData);
-    } else {
-      await setDoc(docRef, { ...DEFAULT_ACADEMY_SETTINGS, ...updatedData });
+    await setDoc(docRef, merged, { merge: true });
+  } catch (error: unknown) {
+    console.warn('Firestore write failed (likely quota limit), settings retained in local cache:', error);
+    const msg = error instanceof Error ? error.message : String(error);
+    // If it's a quota error, do not throw a blocking fatal error; local copy is successfully saved!
+    if (msg.includes('Quota limit exceeded') || msg.includes('quota') || msg.includes('Free daily read units')) {
+      return;
     }
-  } catch (error) {
     handleFirestoreError(error, OperationType.WRITE, `${DOC_PATH}/default`);
   }
 }

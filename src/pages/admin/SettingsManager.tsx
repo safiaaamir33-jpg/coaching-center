@@ -24,6 +24,7 @@ import { useAcademy } from '../../context/AcademyContext';
 import { updateAcademySettings } from '../../services/academyService';
 import { uploadImageOrFile } from '../../services/storageService';
 import { applyDynamicTheme } from '../../utils/theme';
+import { getFriendlyErrorMessage } from '../../firebase/errors';
 
 export const SettingsManager: React.FC = () => {
   const { settings, refreshSettings } = useAcademy();
@@ -109,7 +110,7 @@ export const SettingsManager: React.FC = () => {
       await refreshSettings();
       setSuccess(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error updating academy settings.');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setSaving(false);
     }

@@ -35,6 +35,19 @@ export const AcademyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   useEffect(() => {
     fetchSettings();
+
+    const handleSettingsChanged = (e: Event) => {
+      const customEvent = e as CustomEvent<AcademySettings>;
+      if (customEvent.detail) {
+        setSettings(customEvent.detail);
+        applyDynamicTheme(customEvent.detail.primaryColor, customEvent.detail.accentColor);
+      } else {
+        fetchSettings();
+      }
+    };
+
+    window.addEventListener('bfa_settings_changed', handleSettingsChanged);
+    return () => window.removeEventListener('bfa_settings_changed', handleSettingsChanged);
   }, []);
 
   useEffect(() => {
